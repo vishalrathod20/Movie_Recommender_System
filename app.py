@@ -7,8 +7,17 @@ import requests
 st.markdown("""
     <style>
     body {
-        background: linear-gradient(135deg, #1f1c2c, #928dab);
+        background: #000000; /* Updated background to full black */
+        color: #ffffff; /* White text color for contrast */
         font-family: 'Arial', sans-serif;
+    }
+    .logo {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .logo img {
+        width: 150px; /* Adjust width as needed */
+        height: auto;
     }
     .title {
         color: #FFD700;
@@ -24,6 +33,32 @@ st.markdown("""
         font-size: 18px;
         margin-bottom: 40px;
     }
+    .featured-section {
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.8); /* Slightly transparent black for contrast */
+        border-radius: 10px;
+        margin-bottom: 40px;
+    }
+    .featured-title {
+        color: #FFD700;
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    .featured-movie {
+        margin-bottom: 20px;
+    }
+    .featured-movie img {
+        border-radius: 15px;
+        transition: transform 0.3s ease;
+        width: 100%;
+        height: auto;
+    }
+    .featured-movie img:hover {
+        transform: scale(1.05);
+    }
     .stButton>button {
         background: #FFD700;
         color: black;
@@ -37,13 +72,6 @@ st.markdown("""
         background: #FFA500;
         transform: translateY(-3px);
         box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
-    }
-    .stImage img {
-        border-radius: 15px;
-        transition: transform 0.2s ease;
-    }
-    .stImage img:hover {
-        transform: scale(1.05);
     }
     footer {visibility: hidden;}
     </style>
@@ -91,9 +119,34 @@ movies_dict = pickle.load(open('movies.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 similarity = pickle.load(open('similarity.pkl', 'rb'))
 
+# Define featured movies (example IDs or titles)
+featured_movies = [
+    {'title': 'Inception', 'id': 27205},
+    {'title': 'The Matrix', 'id': 603},
+    {'title': 'Interstellar', 'id': 157336},
+    {'title': 'Parasite', 'id': 496243},
+    {'title': 'The Dark Knight', 'id': 155}
+]
+
+# TMDB Logo
+st.markdown('<div class="logo"><img src="https://www.themoviedb.org/assets/brand/blue_short-1f31520466b0a1fc827d049fa46b43dd3dd041c5a804dc3ec1a0073948c4c027.svg" alt="TMDB Logo" /></div>', unsafe_allow_html=True)
+
 # Centered title and subtitle with updated color and style
 st.markdown('<h1 class="title">🎬 Movie Recommender System</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Find the best movies based on your favorite! Select a movie and get top recommendations.</p>', unsafe_allow_html=True)
+
+# Featured movies section
+st.markdown('<div class="featured-section"><h2 class="featured-title">Featured Movies</h2>', unsafe_allow_html=True)
+
+# Display featured movies
+cols = st.columns(len(featured_movies))
+for i, movie in enumerate(featured_movies):
+    with cols[i]:
+        poster = fetch_poster(movie['id'])
+        st.markdown(f"<div class='featured-movie'><img src='{poster}' /></div>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: #FFD700;'>🎬 {movie['title']}</p>", unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Movie selection dropdown
 selected_movie_name = st.selectbox(
