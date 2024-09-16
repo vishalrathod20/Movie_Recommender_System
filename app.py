@@ -2,7 +2,6 @@ import streamlit as st
 import pickle
 import pandas as pd
 import requests
-from PIL import Image
 
 # Custom CSS for styling the app
 st.markdown("""
@@ -70,8 +69,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Fetch poster from TMDB API
-def fetch_poster(movie_id):
+# Fetch poster and movie details from TMDB API
+def fetch_movie_details(movie_id):
     try:
         url = f'https://api.themoviedb.org/3/movie/{movie_id}?api_key=b86a89b1952c1b69a380fca68fe2d524&language=en-US'
         response = requests.get(url)
@@ -80,12 +79,13 @@ def fetch_poster(movie_id):
         if 'poster_path' in data and data['poster_path']:
             poster_path = data['poster_path']
             full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
-            return full_path
+            movie_url = f"https://www.themoviedb.org/movie/{movie_id}"
+            return full_path, movie_url
         else:
-            return "https://via.placeholder.com/500x750?text=No+Image+Available"
+            return "https://via.placeholder.com/500x750?text=No+Image+Available", "https://www.themoviedb.org/movie/0"
     except Exception as e:
-        st.error(f"Error fetching poster: {e}")
-        return "https://via.placeholder.com/500x750?text=Error"
+        st.error(f"Error fetching movie details: {e}")
+        return "https://via.placeholder.com/500x750?text=Error", "https://www.themoviedb.org/movie/0"
 
 # Function to recommend movies based on similarity
 def recommend(movie):
@@ -96,16 +96,19 @@ def recommend(movie):
 
         recommended_movies = []
         recommended_movies_poster = []
+        recommended_movies_urls = []
 
         for i in movies_list:
             movie_id = movies.iloc[i[0]].movie_id
+            poster, movie_url = fetch_movie_details(movie_id)
             recommended_movies.append(movies.iloc[i[0]].title)
-            recommended_movies_poster.append(fetch_poster(movie_id))
+            recommended_movies_poster.append(poster)
+            recommended_movies_urls.append(movie_url)
 
-        return recommended_movies, recommended_movies_poster
+        return recommended_movies, recommended_movies_poster, recommended_movies_urls
     except Exception as e:
         st.error(f"Error in recommendation function: {e}")
-        return [], []
+        return [], [], []
 
 # Load the movie data and similarity matrix
 movies_dict = pickle.load(open('movies.pkl', 'rb'))
@@ -121,8 +124,6 @@ featured_movies = [
     {'title': 'The Dark Knight', 'id': 155}
 ]
 
-
-
 # Centered title and subtitle with updated color and style
 st.markdown('<h1 class="title">🎬 Movie Recommender System</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Find the best movies based on your favorite! Select a movie and get top recommendations.</p>', unsafe_allow_html=True)
@@ -134,8 +135,8 @@ st.markdown('<div class="featured-section"><h2 class="featured-title">Featured M
 cols = st.columns(len(featured_movies))
 for i, movie in enumerate(featured_movies):
     with cols[i]:
-        poster = fetch_poster(movie['id'])
-        st.markdown(f"<div class='featured-movie'><img src='{poster}' /></div>", unsafe_allow_html=True)
+        poster, movie_url = fetch_movie_details(movie['id'])
+        st.markdown(f"<a href='{movie_url}' target='_blank'><div class='featured-movie'><img src='{poster}' /></div></a>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: center; color: #FFD700;'>🎬 {movie['title']}</p>", unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
@@ -150,7 +151,7 @@ selected_movie_name = st.selectbox(
 # Display recommendations on button click with loading animation
 if st.button('Get Recommendations 🎥'):
     with st.spinner("Fetching your recommendations..."):
-        names, posters = recommend(selected_movie_name)
+        names, posters, urls_list = recommend(selected_movie_name)
 
     if names and posters:
         st.markdown("<h3 style='text-align: center;'>Here are 5 movies we recommend for you:</h3>", unsafe_allow_html=True)
@@ -160,7 +161,7 @@ if st.button('Get Recommendations 🎥'):
 
         for i, col in enumerate(cols):
             with col:
-                st.image(posters[i], use_column_width=True)
+                st.markdown(f"<a href='{urls_list[i]}' target='_blank'><img src='{posters[i]}' style='width: 100%; border-radius: 15px;' /></a>", unsafe_allow_html=True)
                 st.markdown(f"<p style='text-align: center;'>🎬 {names[i]}</p>", unsafe_allow_html=True)
     else:
         st.error("Sorry, we couldn't find any recommendations for this movie.")
