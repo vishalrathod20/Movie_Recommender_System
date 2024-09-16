@@ -2,6 +2,7 @@ import streamlit as st
 import pickle
 import pandas as pd
 import requests
+from PIL import Image
 
 # Custom CSS for styling the app
 st.markdown("""
@@ -10,14 +11,6 @@ st.markdown("""
         background: #000000; /* Updated background to full black */
         color: #ffffff; /* White text color for contrast */
         font-family: 'Arial', sans-serif;
-    }
-    .logo {
-        text-align: center;
-        margin-top: 20px;
-    }
-    .logo img {
-        width: 150px; /* Adjust width as needed */
-        height: auto;
     }
     .title {
         color: #FFD700;
@@ -129,7 +122,8 @@ featured_movies = [
 ]
 
 # TMDB Logo
-st.markdown('<div class="logo"><img src="https://www.themoviedb.org/assets/brand/blue_short-1f31520466b0a1fc827d049fa46b43dd3dd041c5a804dc3ec1a0073948c4c027.svg" alt="TMDB Logo" /></div>', unsafe_allow_html=True)
+logo_path = "C:\\Users\\vishal rathod\\Downloads\\svgtopng\\blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.png"
+st.image(logo_path, use_column_width=True, output_format='png')
 
 # Centered title and subtitle with updated color and style
 st.markdown('<h1 class="title">🎬 Movie Recommender System</h1>', unsafe_allow_html=True)
